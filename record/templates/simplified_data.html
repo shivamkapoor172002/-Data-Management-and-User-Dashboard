@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Simplified Data{% endblock title %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplified Data Storage</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('{% static "images/bg.webp" %}') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            height: 60px;
+        }
+
+        .toggle-btn {
+            display: block;
+            background-color: transparent;
+            border: none;
+            color: #333;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+
+        .progress-report {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            margin-left: auto;
+            background-color: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background-color: rgba(52, 58, 64, 0.9);
+            color: #fff;
+            transition: left 0.3s ease;
+            padding: 1rem;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 60px;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 1rem;
+        }
+
+        .sidebar ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            display: block;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: rgba(73, 80, 87, 0.7);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            line-height: 1;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #dc3545;
+            transform: scale(1.1);
+        }
+
+        .container {
+            margin-top: 80px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            width: 95%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #deleteSimplifiedDataBtn {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #deleteSimplifiedDataBtn:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        .sub-title {
+            font-size: 1.2rem;
+            color: blue;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        @media (max-width: 767px) {
+            .sidebar {
+                width: 100%;
+                left: -100%;
+            }
+            .sub-title {
+                font-size: 1rem;
+                text-align: center;
+            }
+
+            .container {
+                padding: 10px;
+                width: 100%;
+            }
+
+            .progress-report {
+                font-size: 1.2rem;
+            }
+
+            .table {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                flex-wrap: wrap;
+                height: auto;
+            }
+
+            .logout-btn {
+                margin-top: 10px;
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        <div class="progress-report">Simplified Data Storage</div>
+         <div class="sub-title">
+        <img src="{% static 'images/login2.png' %}" alt="UDAAN Logo" style="height: 50px;">
+    </div>
+        {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        {% endif %}
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <ul>
+            <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'statusrecord' %}">View Status</a></li>
+            <li><a href="{% url 'validate_data' %}">Validate Data</a></li>
+            <li><a href="{% url 'summarized_monthly_data' %}">Summarized Monthly Data</a></li>
+            <li><a href="/admin">Admin Panel</a></li>
+            <li><a href="{% url 'index' %}">Go to Your Records</a></li>
+            <li><a href="{% url 'user_data' %}">Any User Data Entry</a></li>
+            <li><a href="{% url 'simplified_data' %}">Simplified Data</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <div class="mb-3">
+            <select id="monthFilter" class="form-control">
+                <option value="">Select Month</option>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <button type="button" id="deleteSimplifiedDataBtn">Delete Simplified Data for Selected Month</button>
+            <button id="refreshDataBtn" class="btn btn-primary">Refresh Data</button>
+        </div>
+
+        <table class="table table-striped" id="simplifiedDataTable">
+            <thead>
+                <tr>
+                    <th>GC ID</th>
+                    <th>Username</th>
+                    <th>Excel Total</th>
+                    <th>Working Days</th>
+                    <th>Target</th>
+                    <th>Period</th>
+                    <th>Month</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in simplified_data %}
+                <tr>
+                    <td>{{ data.user.username }}</td>
+                    <td>{{ data.user.first_name }}</td>
+                    <td>{{ data.excel_total }}</td>
+                    <td>{{ data.working_days }}</td>
+                    <td>{{ data.target }}</td>
+                    <td>{{ data.period|date:"d-m-Y" }}</td>
+                    <td>{{ data.month }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <script>
+   document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const monthFromUrl = urlParams.get('month');
+    if (monthFromUrl) {
+        document.getElementById('monthFilter').value = monthFromUrl;
+    }
+
+    document.getElementById('deleteSimplifiedDataBtn').addEventListener('click', function() {
+        const selectedMonth = document.getElementById('monthFilter').value;
+        if (!selectedMonth) {
+            alert('Please select a month before deleting.');
+            return;
+        }
+        
+        let confirmMessage = `Are you sure you want to delete all simplified data for ${selectedMonth}?`;
+        confirmMessage += '\n\nThis action cannot be undone.';
+
+        if (confirm(confirmMessage)) {
+            fetch('{% url "delete_simplified_data" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ month: selectedMonth })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Simplified data for ${selectedMonth} deleted successfully!`);
+                    location.reload();
+                } else {
+                    alert('Error deleting simplified data: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.log('Fetch error:', error);
+                alert('An unexpected error occurred while deleting data.');
+            });
+        }
+    });
+
+    document.getElementById('monthFilter').addEventListener('change', function() {
+        const selectedMonth = this.value;
+        window.location.href = `{% url 'simplified_data' %}?month=${selectedMonth}`;
+    });
+
+    document.getElementById('refreshDataBtn').addEventListener('click', function() {
+        location.reload();
+    });
+});
+
+function toggleSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('active');
+}
+
+    </script>
+</body>
+</html>
+{% endblock %}

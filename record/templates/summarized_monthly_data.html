@@ -1,0 +1,650 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summarized Monthly Data</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('{% static "images/bg.webp" %}') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1100; /* Increased z-index */
+    display: flex;
+    align-items: center;
+    height: 60px;
+}
+
+.filter-dropdown {
+    position: relative;
+    display: inline-block;
+    z-index: 1001; /* Ensure dropdown is above other content but below the header */
+}
+
+
+        .toggle-btn {
+            display: block;
+            background-color: transparent;
+            border: none;
+            color: #333;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+
+        .progress-report {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            margin-left: auto;
+            background-color: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+
+        .sidebar {
+    position: fixed;
+    left: -250px;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background-color: rgba(52, 58, 64, 0.9);
+    color: #fff;
+    transition: left 0.3s ease;
+    padding: 1rem;
+    z-index: 1100; /* Increased z-index */
+    overflow-y: auto;
+}
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 60px;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 1rem;
+        }
+
+        .sidebar ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            display: block;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: rgba(73, 80, 87, 0.7);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            line-height: 1;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #dc3545;
+            transform: scale(1.1);
+        }
+
+        .container {
+            margin-top: 80px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            width: 95%;
+            margin-left: auto;
+            margin-right: auto;
+            overflow-x: auto;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            max-width: 100%;
+            margin-bottom: 1rem;
+            position: relative;
+    z-index: 1;
+        }
+
+        .table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            white-space: nowrap;
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 1;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .btn {
+            display: inline-block;
+            font-weight: 400;
+            text-align: center;
+            vertical-align: middle;
+            user-select: none;
+            border: 1px solid transparent;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .btn-success {
+            color: #fff;
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .btn-success:hover {
+            color: #fff;
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-select {
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .sub-title {
+            font-size: 1.2rem;
+            color: blue;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .filter-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: #f1f1f1;
+            color: #333;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1001; /* Increase this value */
+    max-height: 300px;
+    overflow-y: auto;
+}
+.filter-dropdown {
+    position: relative;
+    display: inline-block;
+    z-index: 1000; /* Add this line */
+}
+
+        .dropdown-content label {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        .table-container {
+    position: relative;
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.table {
+    table-layout: fixed;
+}
+
+.table th, .table td {
+    min-width: 120px;
+}
+
+.fixed-column {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background-color: #fff;
+}
+
+.fixed-column:nth-child(2) {
+    left: 120px;
+}
+
+.table thead th.fixed-column {
+    z-index: 3;
+}
+
+        .dropdown-content label:hover {
+            background-color: #f1f1f1;
+        }
+
+        .show {
+            display: block;
+        }
+        .table th, .table td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.table th[rowspan="2"] {
+    vertical-align: bottom;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.table tbody tr:hover {
+    background-color: #e9ecef;
+}
+
+
+        @media (max-width: 767px) {
+            .sidebar {
+                width: 100%;
+                left: -100%;
+            }
+            .sub-title {
+                font-size: 1rem;
+                text-align: center;
+            }
+
+            .container {
+                padding: 10px;
+                width: 100%;
+            }
+
+            .progress-report {
+                font-size: 1.2rem;
+            }
+
+            .table {
+                font-size: 0.9rem;
+            }
+
+            .btn, .form-control {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                flex-wrap: wrap;
+                height: auto;
+            }
+
+            .logout-btn {
+                margin-top: 10px;
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        <div class="progress-report">Summarized Monthly Data</div>
+         <div class="sub-title">
+        <img src="{% static 'images/login2.png' %}" alt="UDAAN Logo" style="height: 50px;">
+    </div>
+        {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        {% endif %}
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <ul>
+            <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'statusrecord' %}">View Status</a></li>
+            <li><a href="{% url 'validate_data' %}">Validate Data</a></li>
+            <li><a href="{% url 'summarized_monthly_data' %}">Summarized Monthly Data</a></li>
+            <li><a href="/admin">Admin Panel</a></li>
+            <li><a href="{% url 'index' %}">Go to Your Records</a></li>
+            <li><a href="{% url 'user_data' %}">Any User Data Entry</a></li>
+            <li><a href="{% url 'simplified_data' %}">Simplified Data</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h2>Summarized Monthly Data</h2>
+        <div class="filters">
+            <select id="yearFilter" class="filter-select">
+                <!-- Years will be dynamically populated -->
+            </select>
+            <div class="filter-dropdown">
+                <button onclick="toggleMonthDropdown()" class="dropbtn">Select Months</button>
+                <div id="monthDropdown" class="dropdown-content">
+                    <label><input type="checkbox" value="All" onclick="toggleAllMonths(this)"> All Months</label>
+                    <label><input type="checkbox" value="January"> January</label>
+                    <label><input type="checkbox" value="February"> February</label>
+                    <label><input type="checkbox" value="March"> March</label>
+                    <label><input type="checkbox" value="April"> April</label>
+                    <label><input type="checkbox" value="May"> May</label>
+                    <label><input type="checkbox" value="June"> June</label>
+                    <label><input type="checkbox" value="July"> July</label>
+                    <label><input type="checkbox" value="August"> August</label>
+                    <label><input type="checkbox" value="September"> September</label>
+                    <label><input type="checkbox" value="October"> October</label>
+                    <label><input type="checkbox" value="November"> November</label>
+                    <label><input type="checkbox" value="December"> December</label>
+                </div>
+            </div>
+            <button id="exportExcel" class="btn btn-success">Export to Excel</button>
+        </div>
+
+        <div class="table-container">
+            <table class="table table-striped" id="summaryTable">
+                <thead>
+                    <tr>
+                        <th rowspan="2">GC ID</th>
+                        <th rowspan="2">User Name</th>
+                        <!-- Month headers will be dynamically added here -->
+                    </tr>
+                    <tr>
+                        <!-- Subheaders for each month will be dynamically added here -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script>
+    let allData = [];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = months[currentDate.getMonth()];
+
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        populateYearFilter();
+
+        fetch('{% url "get_simplified_data" %}')
+            .then(response => response.json())
+            .then(data => {
+                allData = summarizeData(data);
+                filterAndPopulateTable();
+            })
+            .catch(error => console.error('Error:', error));
+
+        document.getElementById('yearFilter').addEventListener('change', filterAndPopulateTable);
+        document.querySelectorAll('#monthDropdown input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', filterAndPopulateTable);
+        });
+        document.getElementById('exportExcel').addEventListener('click', exportToExcel);
+    });
+
+    function populateYearFilter() {
+        const yearFilter = document.getElementById('yearFilter');
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear; year >= currentYear - 5; year--) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearFilter.appendChild(option);
+        }
+        yearFilter.value = currentYear;
+    }
+
+    function summarizeData(data) {
+        const summary = {};
+        data.forEach(item => {
+            const year = new Date(item.period).getFullYear();
+            if (!summary[year]) {
+                summary[year] = {};
+            }
+            if (!summary[year][item.user__username]) {
+                summary[year][item.user__username] = {
+                    username: item.user__username,
+                    gcId: item.user__first_name
+                };
+            }
+            const monthLower = item.month.toLowerCase();
+            if (!summary[year][item.user__username][monthLower]) {
+                summary[year][item.user__username][monthLower] = {
+                    total: 0,
+                    workingDays: 0
+                };
+            }
+            summary[year][item.user__username][monthLower].total += item.excel_total;
+            summary[year][item.user__username][monthLower].workingDays += item.working_days;
+        });
+        return summary;
+    }
+
+    function filterAndPopulateTable() {
+        const selectedYear = document.getElementById('yearFilter').value;
+        const selectedMonths = Array.from(document.querySelectorAll('#monthDropdown input[type="checkbox"]:checked'))
+            .map(cb => cb.value)
+            .filter(value => value !== 'All');
+
+        let filteredData = allData[selectedYear] ? Object.values(allData[selectedYear]) : [];
+
+        if (selectedMonths.length > 0) {
+            filteredData = filteredData.map(user => {
+                const filteredUser = {
+                    username: user.username,
+                    gcId: user.gcId
+                };
+                selectedMonths.forEach(month => {
+                    const monthLower = month.toLowerCase();
+                    filteredUser[monthLower] = user[monthLower] || { total: 0, workingDays: 0 };
+                });
+                return filteredUser;
+            });
+        }
+
+        populateTable(filteredData, selectedMonths.length > 0 ? selectedMonths : months);
+    }
+
+    function populateTable(data, monthsToDisplay) {
+    const tableBody = document.querySelector('#summaryTable tbody');
+    const tableHead = document.querySelector('#summaryTable thead');
+    tableBody.innerHTML = ''; // Clear existing rows
+
+    // Update table header
+    const monthHeaderRow = tableHead.rows[0];
+    const subHeaderRow = tableHead.rows[1];
+
+    // Clear existing headers (except User Name and GC ID)
+    while (monthHeaderRow.cells.length > 2) {
+        monthHeaderRow.deleteCell(2);
+    }
+    while (subHeaderRow.cells.length > 0) {
+        subHeaderRow.deleteCell(0);
+    }
+
+    // Add fixed-column class to User Name and GC ID headers
+    monthHeaderRow.cells[0].classList.add('fixed-column');
+    // monthHeaderRow.cells[1].classList.add('fixed-column');
+
+    // Add new headers
+    monthsToDisplay.forEach(month => {
+        const monthHeader = monthHeaderRow.insertCell();
+        monthHeader.textContent = month;
+        monthHeader.colSpan = 3;
+        monthHeader.style.textAlign = 'center';
+        monthHeader.style.fontWeight = 'bold';
+
+        const totalFilesHeader = subHeaderRow.insertCell();
+        totalFilesHeader.innerHTML = '<strong>Total Files</strong>';
+        const workingDaysHeader = subHeaderRow.insertCell();
+        workingDaysHeader.innerHTML = '<strong>Working Days</strong>';
+        const perDaySettlementHeader = subHeaderRow.insertCell();
+        perDaySettlementHeader.innerHTML = '<strong>Per Day Settlement</strong>';
+    });
+
+    // Populate data rows
+    data.forEach(item => {
+        const row = tableBody.insertRow();
+        const userNameCell = row.insertCell();
+        userNameCell.textContent = item.username;
+        userNameCell.classList.add('fixed-column');
+
+        const gcIdCell = row.insertCell();
+        gcIdCell.textContent = item.gcId;
+        // gcIdCell.classList.add('fixed-column');
+
+        monthsToDisplay.forEach(month => {
+            const monthLower = month.toLowerCase();
+            const monthData = item[monthLower] || { total: 0, workingDays: 0 };
+            row.insertCell().textContent = monthData.total || '0';
+            row.insertCell().textContent = monthData.workingDays || '0';
+            const perDaySettlement = monthData.workingDays > 0 ? (monthData.total / monthData.workingDays).toFixed(1) : '0';
+            row.insertCell().textContent = perDaySettlement;
+        });
+    });
+}
+    function exportToExcel() {
+        const selectedYear = document.getElementById('yearFilter').value;
+        const selectedMonths = Array.from(document.querySelectorAll('#monthDropdown input[type="checkbox"]:checked'))
+            .map(cb => cb.value)
+            .filter(value => value !== 'All');
+        let fileName = `Summary_Report_${selectedYear}`;
+        if (selectedMonths.length > 0) {
+            fileName += `_${selectedMonths.join('_')}`;
+        }
+        fileName += '.xlsx';
+
+        var wb = XLSX.utils.table_to_book(document.getElementById('summaryTable'), {sheet:"Summary"});
+        XLSX.writeFile(wb, fileName);
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    function toggleMonthDropdown() {
+        document.getElementById("monthDropdown").classList.toggle("show");
+    }
+
+    function toggleAllMonths(checkbox) {
+        const monthCheckboxes = document.querySelectorAll('#monthDropdown input[type="checkbox"]:not([value="All"])');
+        monthCheckboxes.forEach(cb => cb.checked = checkbox.checked);
+        filterAndPopulateTable();
+    }
+
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(event) {
+        if (!event.target.matches('.dropbtn')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+    </script>
+</body>
+</html>
+{% endblock %}

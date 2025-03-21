@@ -1,0 +1,639 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Report</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('{% static "images/bg.webp" %}') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Header Styles */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-btn {
+            background-color: transparent;
+            border: none;
+            color: #333;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+
+        .progress-report {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .sub-title {
+            font-size: 1.2rem;
+            color: blue;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .logout-btn {
+            background-color: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        /* Container and Content Styles */
+        .container {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-top: 7rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .form-row {
+            display: flex;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-right: 1rem;
+        }
+
+        .form-label {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+        }
+
+        .btn {
+            padding: 0.375rem 0.75rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: #fff;
+        }
+        /* Styles to ensure only the 'Total' label cell has a black background */
+.table tfoot td:first-child {
+    background-color: #000;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Reset any specific styles for the total value cell */
+.table tfoot td:last-child {
+    background-color: transparent;
+    color: #333; /* or any other color you prefer for the number */
+    font-weight: normal;
+}
+
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            width: 100%;
+            max-width: none;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+        }
+/* Add this CSS to ensure word wrapping in table cells */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 6px;
+    border: 1px solid #333;
+    white-space: normal;  /* Allows text to wrap within the cell */
+    word-wrap: break-word;  /* Ensures long words break to the next line */
+    vertical-align: top;  /* Aligns text to the top of the cell */
+}
+
+        .table th,
+        .table td {
+            min-width: 100px;
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #333; /* Darker border */
+        }
+
+        .table th {
+            background-color: #333;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background-color: #343a40;
+            color: #fff;
+            transition: transform 0.3s ease;
+            padding: 1rem;
+            z-index: 1000;
+        }
+
+        .sidebar.active {
+            transform: translateX(250px);
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 60px;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 1rem;
+        }
+
+        .sidebar ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            display: block;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #495057;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            line-height: 1;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #dc3545;
+            transform: scale(1.1);
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            .table-responsive {
+      overflow-x: auto;
+    }
+
+    .table {
+      width: 100%;
+      min-width: 100%; /* Adjust this value as needed */
+      font-size: 12px;
+    }
+
+    .table th,
+    .table td {
+      white-space: nowrap;
+      padding: 4px;
+    }
+  }
+  .bold-text {
+    font-weight: bold;
+}
+
+            .header {
+                flex-wrap: wrap;
+            }
+
+            .sub-title {
+                flex-basis: 100%;
+                order: 3;
+                margin-top: 0.5rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .table {
+                font-size: 14px;
+            }
+
+            .table th,
+            .table td {
+                padding: 6px;
+            }
+            .table td:nth-child(1) {
+        max-width: 150px; /* Adjust 'Name' column width */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; /* Show '...' for long names */
+    }
+
+    .table td:nth-child(3) {
+        max-width: 200px; /* Adjust 'Remarks' column width */
+        word-wrap: break-word; 
+        white-space: normal; /* Allow wrapping */
+    }
+
+            .btn {
+                display: block;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 0.5rem;
+            }
+
+            .progress-report {
+                font-size: 1.2rem;
+            }
+
+            .sub-title {
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 0.75rem;
+            }
+
+            .form-group {
+                flex-basis: 100%;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <ul>
+            <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'statusrecord' %}">View Status</a></li>
+            <li><a href="{% url 'validate_data' %}">Validate Data</a></li>
+            <li><a href="{% url 'summarized_monthly_data' %}">Summarized Monthly Data</a></li>
+            <li><a href="/admin">Admin Panel</a></li>
+            <li><a href="{% url 'index' %}">Go to Your Records</a></li>
+            <li><a href="{% url 'user_data' %}">Any User Data Entry</a></li>
+            <li><a href="{% url 'simplified_data' %}">Simplified Data</a></li>
+        </ul>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+            <div class="progress-report">Status Report</div>
+        </div>
+                <img src="{% static 'images/login2.png' %}" alt="UDAAN Logo" style="height: 50px;">
+        <div class="header-right">
+            {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+            {% endif %}
+        </div>
+    </div>
+
+
+
+    <!-- Main Content -->
+    <div class="container">
+        <h2>Status Report</h2>
+            <!-- Summary Section -->
+<div class="summary-section mb-4">
+    <h3>Summary</h3>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Names</h5>
+                    <p class="card-text" id="totalNames">{{ total_names }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Entered Data</h5>
+                    <p class="card-text" id="enteredData">{{ entered_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Not Entered Yet</h5>
+                    <p class="card-text" id="notEntered">{{ not_entered_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        <form method="POST" class="mb-3">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="status_date" class="form-label">Select Date:</label>
+                    <input type="date" class="form-control" id="status_date" name="status_date" value="{{ status_date|date:'Y-m-d' }}">
+
+                    <button type="submit" class="btn btn-primary">Go</button>
+                </div>
+            </div>
+        </form>
+        <div class="mb-3">
+            <button id="exportStatusExcel" class="btn btn-success" data-date="{{ status_date|date:'d-m-Y' }}">Export Excel</button>
+        </div>
+        <div class="mb-4">
+            <button id="exportStatusImage" class="btn btn-success">Export Image</button>
+        </div>
+        <div id="virtualTableContainer" style="position: absolute; left: -9999px; top: -9999px;"></div>
+        <div class="table-responsive">
+            <table class="table table-striped" id="statusReportTable">
+                <thead>
+                    <tr>
+                        <th style="font-weight: bold;">Name</th>
+                        <th style="font-weight: bold;">Status ({{ status_date|date:"d-m-Y" }})</th>
+                        <th style="font-weight: bold;">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for name, data in status_report.items %}
+                    <tr>
+                        <td class="bold-text">{{ name }}</td>
+                        <td class="bold-text">{{ data.status }}</td>
+                        <td class="bold-text">{{ data.remarks|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tfoot>
+                        <tr>
+                        <td><strong>Total</strong></td>
+                        <td  class="bold-text" id="statusTotal"><strong>0</strong></td>
+                        <td></td>
+                    </tr>
+    </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <script>
+
+function updateSummary() {
+    const table = document.getElementById('statusReportTable');
+    const rows = table.getElementsByTagName('tr');
+    let totalNames = rows.length - 2; // Subtract 2 for the header and total row
+    let enteredData = 0;
+    let notEntered = 0;
+    let statusTotal = 0;
+
+    for (let i = 1; i < rows.length - 1; i++) {
+        const statusCell = rows[i].getElementsByTagName('td')[1];
+        const status = statusCell.innerText;
+
+        if (status !== "Not entered yet") {
+            enteredData++;
+            statusTotal += parseInt(status) || 0; // Add the status value
+        } else {
+            notEntered++;
+        }
+    }
+
+    document.getElementById('totalNames').innerText = totalNames;
+    document.getElementById('enteredData').innerText = enteredData;
+    document.getElementById('notEntered').innerText = notEntered;
+    document.getElementById('statusTotal').innerText = statusTotal; // Update the total
+}
+
+    // Call updateSummary initially
+    updateSummary();
+
+    // Set up a MutationObserver to watch for changes in the table
+    const targetNode = document.getElementById('statusReportTable');
+    const config = { attributes: true, childList: true, subtree: true };
+    const callback = function(mutationsList, observer) {
+        updateSummary();
+    };
+    const observer = new MutationObserver(callback);
+    observer.observe(targetNode, config);
+
+    document.getElementById('exportStatusImage').addEventListener('click', function() {
+    const originalTable = document.getElementById('statusReportTable');
+    const virtualContainer = document.getElementById('virtualTableContainer');
+
+    // Clone the table and apply mobile-specific styles
+    const virtualTable = originalTable.cloneNode(true);
+
+    // Apply mobile styles
+    virtualTable.style.width = '100%'; // Set width to 100% for mobile view
+    virtualTable.style.fontSize = '12px'; // Match mobile font size
+    virtualTable.style.borderCollapse = 'collapse';
+
+    // Apply styles to cells for mobile view
+    // JavaScript to apply styles
+virtualTable.querySelectorAll('th, td').forEach(cell => {
+    cell.style.padding = '6px'; 
+    cell.style.border = '1px solid #333';
+    cell.style.whiteSpace = 'normal';  // Ensure text wraps
+    cell.style.wordWrap = 'break-word';  // Break long words to the next line
+    cell.style.verticalAlign = 'top';  // Align text to the top of the cell
+});
+
+
+    // Clear and append the virtual table to the hidden container
+    virtualContainer.innerHTML = '';
+    virtualContainer.appendChild(virtualTable);
+
+    // Generate the image
+    html2canvas(virtualTable, {
+        scale: 2, // Increase for better quality
+        useCORS: true,
+        logging: false
+    }).then(function(canvas) {
+        canvas.toBlob(function(blob) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Status Report',
+                    text: 'Check out this status report',
+                    files: [new File([blob], 'status_report.png', { type: 'image/png' })]
+                }).then(() => console.log('Share was successful.'))
+                .catch((error) => console.log('Sharing failed', error));
+            } else {
+                var link = document.createElement('a');
+                link.download = 'status_report.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+
+            // Clean up
+            virtualContainer.innerHTML = '';
+        });
+    });
+});
+
+
+        function toggleSidebar() {
+            var sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        document.getElementById('exportStatusExcel').addEventListener('click', function() {
+            console.log('Export Excel button clicked');
+
+    var dateStr = this.getAttribute('data-date');
+    var table = document.getElementById('statusReportTable');
+
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.table_to_sheet(table);
+
+    // Define column widths
+    ws['!cols'] = [
+        {wch: 30}, // Name
+        {wch: 15}, // Status
+        {wch: 50}  // Remarks
+    ];
+
+    // Apply styles to cells
+    for (var cellRef in ws) {
+        if (cellRef[0] === '!') continue; // Skip special keys
+
+        var cell = ws[cellRef];
+        if (!cell.s) cell.s = {};
+
+        // General cell styles
+        cell.s.border = {
+            top: {style: 'thin', color: {rgb: "000000"}},
+            bottom: {style: 'thin', color: {rgb: "000000"}},
+            left: {style: 'thin', color: {rgb: "000000"}},
+            right: {style: 'thin', color: {rgb: "000000"}}
+        };
+
+        // Header row styles
+        if (parseInt(cellRef.replace(/[^0-9]/g, '')) === 1) {
+            cell.s.fill = {fgColor: {rgb: "333333"}};
+            cell.s.font = {color: {rgb: "FFFFFF"}, bold: true};
+            cell.s.alignment = {horizontal: 'center'};
+        } else {
+            // Apply text alignment and wrapping
+            cell.s.alignment = {horizontal: 'left', wrapText: true};
+        }
+
+        // Align Status column to center
+        if (cellRef.replace(/[^A-Z]/g, '') === 'B') {
+            cell.s.alignment = {horizontal: 'center'};
+        }
+
+        // Apply specific styles for odd and even rows
+        var rowIndex = parseInt(cellRef.replace(/[^0-9]/g, ''));
+        if (rowIndex > 1) { // Skip header row
+            var isOddRow = rowIndex % 2 !== 0;
+            if (isOddRow) {
+                cell.s.fill = {fgColor: {rgb: "F9F9F9"}}; // Light gray background for odd rows
+            }
+        }
+    }
+
+    // Append sheet and export
+    XLSX.utils.book_append_sheet(wb, ws, "Status Report");
+    XLSX.writeFile(wb, 'Status_Report(' + dateStr + ').xlsx');
+});
+
+    </script>
+</body>
+</html>
+{% endblock %}

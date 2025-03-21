@@ -1,0 +1,724 @@
+{% extends "base.html" %}
+{% block title %}Data Entry{% endblock title %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Report</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('{% static "images/bg.webp" %}') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            line-height: 1.6;
+            padding-top: 60px;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background-color: #343a40;
+            color: #fff;
+            transition: left 0.3s ease;
+            padding: 1rem;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 60px;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 1rem;
+        }
+
+        .sidebar ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            display: block;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #495057;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            line-height: 1;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #dc3545;
+            transform: scale(1.1);
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            padding: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-btn {
+            font-size: 1.5rem;
+            background-color: transparent;
+            border: none;
+            color: #333;
+            cursor: pointer;
+            padding: 0.5rem;
+            margin-right: 1rem;
+        }
+
+        .progress-report {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .sub-title {
+            font-size: 1rem;
+            color: blue;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .user-greeting {
+            margin-right: 1rem;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            background-color: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        .main-content {
+            padding: 5rem 1rem 1rem;
+            min-height: calc(100vh - 60px);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            max-width: 700px;
+            margin: 1rem auto;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 2rem auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+        .target-progress {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .progress {
+        height: 25px;
+        font-size: 0.875rem;
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+    }
+
+   .target-progress {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  border: 2px solid #000; /* Add a 2px black border */
+}
+
+.progress {
+  height: 25px;
+  font-size: 0.875rem;
+  background-color: #e9ecef;
+  border-radius: 0.25rem;
+  border: 2px solid #000; /* Add a 2px black border */
+}
+
+.progress-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  background-color: #007bff;
+  transition: width 0.6s ease;
+  animation: progress-animation 2s ease-in-out;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+}
+/* Progress bar fill animation */
+@keyframes progress-animation {
+    0% {
+        width: 0;
+    }
+    100% {
+        width: {{ percentage_done|default:0 }}%;
+    }
+}
+
+/* Glow effect */
+.progress-bar.glowing {
+    animation: glow-animation 2s infinite;
+}
+
+@keyframes glow-animation {
+    0% {
+        box-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(0, 123, 255, 1);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+    }
+}
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-danger {
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            background-color: transparent;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-wrap: wrap;
+            }
+
+            .sub-title {
+                order: -1;
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .header-left, .header-right {
+                width: 50%;
+            }
+
+            .header-right {
+                justify-content: flex-end;
+            }
+
+            .sidebar {
+                width: 80%;
+                max-width: 300px;
+                left: -100%;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-left, .header-right {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 0.5rem;
+            }
+
+            .progress-report {
+                font-size: 1.2rem;
+            }
+
+            .sub-title {
+                font-size: 0.9rem;
+            }
+
+            .user-greeting {
+                font-size: 0.8rem;
+            }
+
+            .logout-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding-top: 120px;
+            }
+
+            .main-content {
+                min-height: calc(100vh - 120px);
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 0.5rem;
+            }
+
+            .first {
+                width: 100%;
+                justify-content: space-between;
+                margin-right: 0;
+            }
+
+            .sub-title {
+                order: 3;
+                width: 100%;
+                text-align: center;
+                margin-top: 0.5rem;
+                font-size: 1rem;
+            }
+
+            .user-greeting, .logout-btn {
+                width: 100%;
+                text-align: center;
+                margin: 0.5rem 0;
+            }
+
+            .toggle-btn {
+                position: absolute;
+                top: 0.5rem;
+                left: 0.5rem;
+                font-size: 1.2rem;
+                margin-left: 0;
+            }
+
+            .progress-report {
+                margin-left: 2rem;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.7rem;
+            }
+
+            .logout-btn {
+                padding: 0.5rem 9.2rem;
+                font-size: 0.8rem;
+            }
+
+            .go {
+                margin-top: 12px;
+                padding: 0.3rem 1.2rem;
+            }
+
+            .chart-container {
+                padding: 0.5rem;
+            }
+
+            #progressChart {
+                height: 250px !important;
+            }
+        }
+
+        .first {
+            display: flex;
+            gap: 5px;
+        }
+    </style>
+ <script>
+   document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('dataForm');
+    var leaveCheckbox = document.getElementById('leaveCheckbox');
+    var fieldsInput = document.getElementById('fieldsInput');
+    var numberInput = document.getElementById('numberInput');
+    var remarksInput = document.getElementById('remarksInput');
+    var submitButton = document.querySelector('button[type="submit"]');
+
+    function validateForm() {
+        if (leaveCheckbox.checked || (numberInput.value && parseInt(numberInput.value) > 0)) {
+            submitButton.disabled = false;
+        } else {
+            submitButton.disabled = true;
+        }
+    }
+
+    leaveCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            fieldsInput.style.display = 'none';
+            numberInput.value = '';
+        } else {
+            fieldsInput.style.display = 'block';
+        }
+        validateForm();
+    });
+
+    numberInput.addEventListener('input', validateForm);
+
+
+    form.addEventListener('submit', function(event) {
+        if (!leaveCheckbox.checked && (!numberInput.value || parseInt(numberInput.value) <= 0)) {
+            event.preventDefault();
+            alert('Please either select Leave or enter a valid number of files.');
+        }
+    });
+
+    // Initial form validation
+    validateForm();
+
+
+        // Existing chart initialization code
+        var ctx = document.getElementById('progressChart').getContext('2d');
+        var progressChart = new Chart(ctx, {
+            type: 'line',
+            plugins: [ChartDataLabels],
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Number of Files',
+                    data: {{ chart_values|safe }},
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(75, 192, 192, 1)',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'File Progress by {{ view_type|title }}'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: Math.round,
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: '{{ view_type|title }}'
+                        },
+                        ticks: {
+                            maxRotation: 90,
+                            minRotation: 90
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Files'
+                        },
+                        suggestedMin: 0
+                    }
+                }
+            }
+        });
+    });
+
+    function toggleSidebar() {
+        var sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('active');
+
+        if (sidebar.classList.contains('active')) {
+            document.addEventListener('click', closeSidebarOutside);
+        } else {
+            document.removeEventListener('click', closeSidebarOutside);
+        }
+    }
+
+    function closeSidebarOutside(event) {
+        var sidebar = document.getElementById('sidebar');
+        if (!sidebar.contains(event.target) && !event.target.classList.contains('toggle-btn')) {
+            sidebar.classList.remove('active');
+            document.removeEventListener('click', closeSidebarOutside);
+        }
+    }
+
+    function downloadChart() {
+        var link = document.createElement('a');
+        link.href = progressChart.toBase64Image();
+        link.download = 'progress_chart.png';
+        link.click();
+    }
+</script>
+</head>
+<body>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <button class="close-btn" onclick="toggleSidebar()">×</button>
+    <ul>
+        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'statusrecord' %}">View Status</a></li>
+            <li><a href="{% url 'validate_data' %}">Validate Data</a></li>
+            <li><a href="{% url 'summarized_monthly_data' %}">Summarized Monthly Data</a></li>
+            <li><a href="/admin">Admin Panel</a></li>
+            <li><a href="{% url 'index' %}">Go to Your Records</a></li>
+            <li><a href="{% url 'user_data' %}">Any User Data Entry</a></li>
+            <li><a href="{% url 'simplified_data' %}">Simplified Data</a></li>
+    </ul>
+</div>
+<div class="header">
+    <div class="header-left">
+        {% if is_admin %}
+        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        {% endif %}
+        <div class="progress-report">Progress Report</div>
+    </div>
+     <div class="sub-title">
+        <img src="{% static 'images/login2.png' %}" alt="UDAAN Logo" style="height: 50px;">
+        <p class="user-greeting" style="color: #000; font-weight: bold;">Hello, {{ user.first_name }}</p>
+    </div>
+    <div class="header-right">
+        {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        {% endif %}
+    </div>
+</div>
+<div class="main-content">
+    <div class="container">
+        <form method="POST" id="dataForm">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="dateInput" class="form-label">Select a Date:</label>
+                <input type="date" class="form-control" id="dateInput" name="date" max="{{ today|date:'Y-m-d' }}" value="{{ today|date:'Y-m-d' }}" required>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="leaveCheckbox" name="is_leave">
+                <label class="form-check-label" for="leaveCheckbox">Leave</label>
+            </div>
+            <div class="mb-3" id="fieldsInput">
+                <label for="numberInput" class="form-label">Enter Number of Files:</label>
+                <input type="number" class="form-control" id="numberInput" name="fields" placeholder="Please enter no.of files" min="1">
+            </div>
+            <div class="mb-3">
+                <label for="remarksInput" class="form-label">Remarks (Optional):</label>
+                <input type="text" class="form-control" id="remarksInput" name="remarks" placeholder="Enter any remarks">
+            </div>
+            <button type="submit" class="btn btn-primary" disabled>Save</button>
+        </form>
+        <div class="container">
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="container mt-5">
+            <div class="target-progress mb-4">
+                <h3>Monthly Progress ({{ current_month|default:"No month" }})</h3>
+                {% if current_month_target %}
+                <p>Target: {{ current_month_target }}</p>
+                <p>Current Progress: {{ current_month_total|default:"0" }} / {{ current_month_target }}</p>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: {{ percentage_done|default:0 }}%;" aria-valuenow="{{ percentage_done|default:0 }}" aria-valuemin="0" aria-valuemax="100">{{ percentage_done|default:0 }}%</div>
+                </div>
+                <p>{{ percentage_done|default:0 }}% work done</p>
+                {% else %}
+                <p>No target set for the current month.</p>
+                {% endif %}
+            </div>
+            <h2>Your Records</h2>
+            
+            <form method="GET" class="mb-3">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="start_date" class="form-label">Start Date:</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="end_date" class="form-label">End Date:</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary go">Go</button>
+                    </div>
+                </div>
+            </form>
+            
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Value</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.date|date:"d-m-Y" }}</td>
+                        <td>{% if record.is_leave %}Leave{% else %}{{ record.field }}{% endif %}</td>
+                        <td>{{ record.remarks|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">No records found for the selected date range.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="chart-container">
+        <h2>Your Progress Chart</h2>
+        <form method="GET" class="mb-3">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="view_type" class="form-label">View Type:</label>
+                    <select class="form-control" id="view_type" name="view_type">
+                        <option value="month" {% if view_type == 'month' %}selected{% endif %}>Month</option>
+                        <option value="year" {% if view_type == 'year' %}selected{% endif %}>Year</option>
+                        <option value="daily" {% if view_type == 'daily' %}selected{% endif %}>Daily</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Start Date:</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">End Date:</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Update Chart</button>
+                </div>
+            </div>
+        </form>
+        <div style="overflow-x: auto; width: 100%;">
+            <div style="min-width: 600px;">
+                <canvas id="progressChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+        <button onclick="downloadChart()" class="btn btn-secondary mt-3">Download Chart</button>
+    </div>
+</div>
+</body>
+</html>
+{% endblock content %}

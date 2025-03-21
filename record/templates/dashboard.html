@@ -1,0 +1,633 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Arial', sans-serif;
+        background: url('{% static "images/bg.webp" %}') no-repeat center center fixed;
+        background-size: cover;
+        color: #333;
+        line-height: 1.6;
+    }
+
+    .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+    }
+
+    .toggle-btn {
+        display: block;
+        background-color: transparent;
+        border: none;
+        color: #333;
+        font-size: 1.5rem;
+        cursor: pointer;
+        margin-right: 1rem;
+    }
+
+    .progress-report {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .logout-btn {
+        margin-left: auto;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: #343a40;
+        color: #fff;
+        transition: left 0.3s ease;
+        padding: 1rem;
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 60px;
+    }
+
+    .sidebar ul li {
+        margin-bottom: 1rem;
+    }
+
+    .sidebar ul li a {
+        color: #fff;
+        text-decoration: none;
+        font-size: 1.1rem;
+        display: block;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #495057;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: transparent;
+        border: none;
+        color: #fff;
+        font-size: 2rem;
+        cursor: pointer;
+        padding: 5px 10px;
+        line-height: 1;
+        transition: color 0.3s, transform 0.3s;
+    }
+
+    .close-btn:hover {
+        color: #dc3545;
+        transform: scale(1.1);
+    }
+
+    .main-content {
+        padding: 5rem 1rem 1rem;
+        min-height: 100vh;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        max-width: 100%;
+        margin: 1rem auto;
+        overflow-x: auto;
+        width: 100%;
+        max-width: 1200px; /* Adjust this value as needed */
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+        transition: background-color 0.3s, transform 0.3s;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-danger {
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        background-color: transparent;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .editable {
+        cursor: pointer;
+        color: #007bff;
+        text-decoration: underline;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #dashboardTable {
+        width: 100%;
+        min-width: 1000px;
+    }
+    .leave-entry {
+    color: #ff6666; /* Light red color */
+    font-weight: bold;
+}
+
+    #myChart {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 300px; /* Adjust this value for a minimum height */
+        max-height: 600px; /* Adjust this value for a maximum height */
+    }
+    .sub-title {
+            font-size: 1.2rem;
+            color: blue;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+    @media (min-width: 768px) {
+        .sidebar {
+            width: 250px;
+            left: -250px;
+        }
+
+        .container {
+            max-width: 90%;
+        }
+        .sub-title {
+                font-size: 1rem;
+                text-align: center;
+            }
+    }
+
+    @media (max-width: 767px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+
+        .sidebar {
+            width: 60%;
+            opacity: 80%;
+        }
+
+        #dashboardTable {
+            min-width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .progress-report {
+            font-size: 1.2rem;
+        }
+        .container {
+            padding: 0.75rem;
+        }
+    }
+    @media (max-width: 640px) {
+        .header{
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .first {
+                display: flex;
+                justify-content: space-evenly;
+                margin-right: 20px;
+            }
+
+            .sub-title {
+                font-size: 1rem;
+            }
+
+            .toggle-btn{
+                font-size: 1.2rem;
+                margin-left: -110px;
+            }
+            .progress-report {
+                margin-left: 90px;
+            }
+            .user-greeting {
+                text-align: center;
+                font-weight: 600;
+            }
+            .logout-btn {
+                padding: 0.5rem 9.2rem;
+                font-size: 0.8rem;
+                margin-left: -5px;
+            }
+    }
+
+
+    .first {
+        display: flex;
+        gap: 5px;
+    }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div class="first">
+            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+            <div class="progress-report">Dashboard</div>
+        </div>
+         <div class="sub-title">
+        <img src="{% static 'images/login2.png' %}" alt="UDAAN Logo" style="height: 50px;">
+        <p class="user-greeting" style="color: #000; font-weight: bold;">Hello, {{ user.first_name }}</p>
+
+    </div>
+  
+        {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger logout-btn">Logout</a>
+        {% endif %}
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <ul>
+            <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'statusrecord' %}">View Status</a></li>
+            <li><a href="{% url 'validate_data' %}">Validate Data</a></li>
+            <li><a href="{% url 'summarized_monthly_data' %}">Summarized Monthly Data</a></li>
+            <li><a href="/admin">Admin Panel</a></li>
+            <li><a href="{% url 'index' %}">Go to Your Records</a></li>
+            <li><a href="{% url 'user_data' %}">Any User Data Entry</a></li>
+            <li><a href="{% url 'simplified_data' %}">Simplified Data</a></li>
+
+
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="container mt-5">
+            <h2>Dashboard</h2>
+            <form method="POST" class="mb-3">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="start_date" class="form-label">Start Date:</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="end_date" class="form-label">End Date:</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="user_select" class="form-label">Select Users:</label>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span id="selectedUsersCount">0 User(s) Selected</span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="selectAll" />
+                                        <label class="form-check-label" for="selectAll">Select All</label>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% for user in all_users %}
+                                    <li>
+                                        <div class="form-check">
+                                            <input class="form-check-input user-checkbox" type="checkbox" id="user{{ user.id }}" name="selected_users" value="{{ user.id }}"
+                                                {% if user.id in selected_users %}checked{% endif %}>
+                                            <label class="form-check-label" for="user{{ user.id }}">{{ user.first_name }}</label>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Go</button>
+            </form>
+
+            {% if start_date and end_date %}
+                <p>Showing data from {{ start_date|date:"d-m-Y" }} to {{ end_date|date:"d-m-Y" }}</p>
+            {% else %}
+                <p>Showing all data</p>
+            {% endif %}
+
+            <div class="mb-3">
+                <button id="exportExcel" class="btn btn-success">Export to Excel</button>
+            </div>
+
+            <table class="table table-striped table-hover" id="dashboardTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Usernames</th>
+                        <th scope="col">GC ID</th>
+                        {% for date in date_range %}
+                            <th scope="col">{{ date|date:"d-m-Y" }}</th>
+                        {% endfor %}
+                        <th scope="col">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_id, username, data in user_data_sorted %}
+                        <tr>
+                            <td>{{ user_id }}</td>
+                            <td>{{ username }}</td>
+                            {% for record in data.daily_records %}
+                                <td>
+                                    {% if user.is_superuser or user.is_staff %}
+                                        <span class="editable" data-id="{{ record.id }}" data-type="{{ record.type }}">
+                                            {% if record.type == 'leave' %}
+                                                <span class="leave-entry">Leave</span>
+                                            {% else %}
+                                                {{ record.value }}
+                                            {% endif %}
+                                        </span>
+                                    {% else %}
+                                        {% if record.type == 'leave' %}
+                                            <span class="leave-entry">Leave</span>
+                                        {% else %}
+                                            {{ record.value }}
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                            <td>{{ data.total }}</td>
+                        </tr>
+                    {% endfor %}
+                    <tr>
+                        <td></td>
+                        <td><strong>Total</strong></td>
+                        {% for total in daily_totals %}
+                            <td><strong>{{ total }}</strong></td>
+                        {% endfor %}
+                        <td><strong>{{ grand_total }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add Chart.js and Chart.js Data Labels Plugin -->
+        <div class="container mt-5">
+            <h2>File Count Over Time</h2>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="chart_user_select" class="form-label">Select User:</label>
+                    <select class="form-select" id="chart_user_select">
+                        <option value="all" selected>All Users</option>
+                        {% for user in all_users %}
+                            <option value="{{ user.id }}">{{ user.first_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <canvas id="myChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+        <!-- Add necessary scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.0.0/chartjs-plugin-datalabels.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    const selectedUsersCountSpan = document.getElementById('selectedUsersCount');
+    const dropdownButton = document.getElementById('dropdownMenuButton');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+
+    function updateSelectedUsersCount() {
+        const selectedCount = document.querySelectorAll('.user-checkbox:checked').length;
+        const text = `${selectedCount} User(s) Selected`;
+        selectedUsersCountSpan.textContent = text;
+        dropdownButton.textContent = text;
+    }
+
+    function closeDropdown() {
+        dropdownMenu.classList.remove('show');
+        dropdownButton.setAttribute('aria-expanded', 'false');
+    }
+
+    selectAllCheckbox.addEventListener('change', function() {
+        const isChecked = this.checked;
+        userCheckboxes.forEach(function(checkbox) {
+            checkbox.checked = isChecked;
+        });
+        updateSelectedUsersCount();
+        closeDropdown();
+    });
+
+    userCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            if (!this.checked) {
+                selectAllCheckbox.checked = false;
+            } else if (document.querySelectorAll('.user-checkbox:checked').length === userCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+            }
+            updateSelectedUsersCount();
+            closeDropdown();
+        });
+    });
+
+    // Prevent dropdown from closing when clicking inside
+    dropdownMenu.addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+
+    // Initial count update
+    updateSelectedUsersCount();
+});
+
+            // Editable cells
+            document.querySelectorAll('.editable').forEach(function(element) {
+                element.addEventListener('click', function() {
+                    var value = this.innerText;
+                    var id = this.dataset.id;
+                    var type = this.dataset.type;
+                    var newValue = prompt("Enter new value:", value);
+                    if (newValue !== null) {
+                        fetch('/update_record/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({id: id, value: newValue, type: type})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.innerText = type === 'leave' ? 'Leave' : newValue;
+                                location.reload(); // Refresh to update totals
+                            } else {
+                                alert('Failed to update. Please try again.');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Export to Excel
+            document.getElementById('exportExcel').addEventListener('click', function() {
+                var wb = XLSX.utils.table_to_book(document.getElementById('dashboardTable'), {sheet:"Dashboard"});
+                XLSX.writeFile(wb, 'Dashboard_Report.xlsx');
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        plugins: [ChartDataLabels],
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Number of Files',
+                data: {{ chart_data|safe }},
+                backgroundColor: 'rgba(173, 216, 230, 0.8)',
+                borderColor: 'rgba(173, 216, 230, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 2, // Adjust this value to change the aspect ratio of the chart
+            plugins: {
+                datalabels: {
+                    color: '#000',
+                    anchor: 'end',
+                    align: 'top',
+                    offset: 5,
+                    font: {
+                        weight: 'bold',
+                        size: 14
+                    },
+                    formatter: function(value) {
+                        return value;
+                    },
+                    display: function(context) {
+                        return context.dataset.data[context.dataIndex] !== 0;
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxRotation: 90,
+                        minRotation: 0
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Number of Files'
+                    },
+                    beginAtZero: true,
+                    suggestedMin: 0,
+                    suggestedMax: Math.max(...{{ chart_data|safe }}) * 1.1, // Add 10% padding to the top
+                    ticks: {
+                        stepSize: 1 // Adjust step size as needed
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    top: 20,
+                    right: 20,
+                    bottom: 20,
+                    left: 20
+                }
+            }
+        }
+    });
+});
+
+            //     // Set the size of the chart
+            //     ctx.canvas.parentNode.style.height = '400px';
+            //     ctx.canvas.parentNode.style.width = '100%';
+            // });
+
+            // Select/Deselect All Users
+            document.getElementById('selectAll').addEventListener('change', function() {
+                var isChecked = this.checked;
+                document.querySelectorAll('.dropdown-menu .form-check-input').forEach(function(checkbox) {
+                    checkbox.checked = isChecked;
+                });
+            });
+
+            // Toggle sidebar
+            function toggleSidebar() {
+                document.getElementById('sidebar').classList.toggle('active');
+            }
+        </script>
+    </div>
+</body>
+</html>
+{% endblock %}

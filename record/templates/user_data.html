@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}User Data Entry{% endblock title %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Data Entry</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Arial', sans-serif;
+        background: url('{% static "images/bg.webp" %}') no-repeat center center fixed;
+        background-size: cover;
+        color: #333;
+        line-height: 1.6;
+    }
+
+    .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+    }
+
+    .toggle-btn {
+        display: block;
+        background-color: transparent;
+        border: none;
+        color: #333;
+        font-size: 1.5rem;
+        cursor: pointer;
+        margin-right: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .logout-btn {
+        margin-left: auto;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: #343a40;
+        color: #fff;
+        transition: left 0.3s ease;
+        padding: 1rem;
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 60px;
+    }
+
+    .sidebar ul li {
+        margin-bottom: 1rem;
+    }
+
+    .sidebar ul li a {
+        color: #fff;
+        text-decoration: none;
+        font-size: 1.1rem;
+        display: block;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar ul li a:hover {
+        background-color: #495057;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: transparent;
+        border: none;
+        color: #fff;
+        font-size: 2rem;
+        cursor: pointer;
+        padding: 5px 10px;
+        line-height: 1;
+        transition: color 0.3s, transform 0.3s;
+    }
+
+    .close-btn:hover {
+        color: #dc3545;
+        transform: scale(1.1);
+    }
+
+    .main-content {
+        padding: 5rem 1rem 1rem;
+        min-height: 100vh;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        max-width: 100%;
+        margin: 1rem auto;
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+        transition: background-color 0.3s, transform 0.3s;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-danger {
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        background-color: transparent;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    @media (min-width: 768px) {
+        .sidebar {
+            width: 250px;
+            left: -250px;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .page-title {
+            font-size: 1.2rem;
+        }
+        .container {
+            padding: 0.75rem;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        <div class="page-title">Any User Data Entry</div>
+        {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger logout-btn">Logout</a>
+        {% endif %}
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <ul>
+            <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'statusrecord' %}">View Status</a></li>
+            <li><a href="{% url 'validate_data' %}">Validate Data</a></li>
+            <li><a href="{% url 'summarized_monthly_data' %}">Summarized Monthly Data</a></li>
+            <li><a href="/admin">Admin Panel</a></li>
+            <li><a href="{% url 'index' %}">Go to Your Records</a></li>
+            <li><a href="{% url 'user_data' %}">Any User Data Entry</a></li>
+            <li><a href="{% url 'simplified_data' %}">Simplified Data</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h2>Enter User Data</h2>
+
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" id="userDataForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="userSelect" class="form-label">Select User:</label>
+                    <select class="form-control" id="userSelect" name="user" required>
+                        <option value="">Select a user</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="dateInput" class="form-label">Select a Date:</label>
+                    <input type="date" class="form-control" id="dateInput" name="date" max="{{ today|date:'Y-m-d' }}" value="{{ today|date:'Y-m-d' }}" required>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="leaveCheckbox" name="is_leave">
+                    <label class="form-check-label" for="leaveCheckbox">Leave</label>
+                </div>
+                <div class="mb-3" id="fieldsInput">
+                    <label for="numberInput" class="form-label">Enter Number of Files:</label>
+                    <input type="number" class="form-control" id="numberInput" name="fields" placeholder="Please enter no. of files" min="1">
+                </div>
+                <div class="mb-3">
+                    <label for="remarksInput" class="form-label">Remarks (Optional):</label>
+                    <input type="text" class="form-control" id="remarksInput" name="remarks" placeholder="Enter any remarks">
+                </div>
+                <button type="submit" class="btn btn-primary" id="submitButton" disabled>Save</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var form = document.getElementById('userDataForm');
+            var userSelect = document.getElementById('userSelect');
+            var leaveCheckbox = document.getElementById('leaveCheckbox');
+            var fieldsInput = document.getElementById('fieldsInput');
+            var numberInput = document.getElementById('numberInput');
+            var submitButton = document.getElementById('submitButton');
+
+            function validateForm() {
+                if (userSelect.value && (leaveCheckbox.checked || (numberInput.value && parseInt(numberInput.value) > 0))) {
+                    submitButton.disabled = false;
+                } else {
+                    submitButton.disabled = true;
+                }
+            }
+
+            userSelect.addEventListener('change', validateForm);
+            leaveCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    fieldsInput.style.display = 'none';
+                    numberInput.value = '';
+                } else {
+                    fieldsInput.style.display = 'block';
+                }
+                validateForm();
+            });
+
+            numberInput.addEventListener('input', validateForm);
+
+            form.addEventListener('submit', function(event) {
+                if (!userSelect.value || (!leaveCheckbox.checked && (!numberInput.value || parseInt(numberInput.value) <= 0))) {
+                    event.preventDefault();
+                    alert('Please select a user and either select Leave or enter a valid number of files.');
+                }
+            });
+
+            // Initial form validation
+            validateForm();
+        });
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
+{% endblock content %}

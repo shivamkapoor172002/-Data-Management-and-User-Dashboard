@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: url('{% static "images/bg.webp" %}') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .container {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 600px; /* Increased max-width for desktop */
+    margin: 0 auto;
+  }
+
+  .heading {
+    font-size: 2.5rem;
+    color: #0080ff;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .heading1 {
+    font-size: 1.3rem;
+    color: #0080ff;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .welcome-text {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .sub-text {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+
+  .btn-primary {
+    background-color: #0080ff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .password-container {
+    position: relative;
+  }
+
+  .toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #666;
+  }
+    .logo {
+    display: block;
+    margin: 0 auto 20px;
+    max-width: 250px;
+    height: auto;
+  }
+
+  .toggle-password:focus {
+    outline: none;
+  }
+
+  .btn-primary:hover {
+    background-color: #0066cc;
+  }
+
+  .error-message {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding: 20px;
+      max-width: 100%; /* Ensure full width on tablets */
+    }
+
+    .heading {
+      font-size: 2rem;
+    }
+
+    .welcome-text {
+      font-size: 1.2rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .heading {
+      font-size: 1.8rem;
+    }
+
+    .welcome-text {
+      font-size: 1rem;
+    }
+
+    .sub-text {
+      font-size: 0.8rem;
+    }
+
+    .form-control {
+      font-size: 0.9rem;
+    }
+
+    .btn-primary {
+      font-size: 0.9rem;
+      padding: 8px 16px;
+    }
+
+    .toggle-password {
+      font-size: 1rem;
+    }
+  }
+</style>
+
+<div class="container">
+  <img src="{% static 'images/login.png' %}" alt="UDAAN Logo" class="logo">
+
+  <h2 class="welcome-text">Welcome back!</h2>
+  <p class="sub-text">Enter your credentials to access your account</p>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="error-message">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="username" class="form-label">Username</label>
+      <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+    </div>
+    <div class="form-group">
+      <label for="password" class="form-label">Password</label>
+      <div class="password-container">
+        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+        <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+      </div>
+    </div>
+    <button type="submit" class="btn-primary">Login</button>
+  </form>
+</div>
+
+<script>
+function togglePassword() {
+  const passwordInput = document.getElementById('password');
+  const toggleButton = document.querySelector('.toggle-password');
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleButton.textContent = '👁️‍🗨️';
+  } else {
+    passwordInput.type = 'password';
+    toggleButton.textContent = '👁️';
+  }
+}
+</script>
+{% endblock content %}

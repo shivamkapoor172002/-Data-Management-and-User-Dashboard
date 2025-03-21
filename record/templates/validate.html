@@ -1,0 +1,686 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validate Data</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('{% static "images/bg.webp" %}') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        }
+
+        .toggle-btn {
+            background-color: transparent;
+            border: none;
+            color: #333;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .progress-report {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+        margin-left: auto;
+        }
+
+        .logout-btn:hover {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background-color: rgba(52, 58, 64, 0.9);
+            color: #fff;
+            transition: left 0.3s ease;
+            padding: 1rem;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 60px;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 1rem;
+        }
+
+        .sidebar ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            display: block;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: rgba(73, 80, 87, 0.7);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            line-height: 1;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #dc3545;
+            transform: scale(1.1);
+        }
+
+        .container {
+            margin-top: 80px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            width: 95%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .btn {
+            display: inline-block;
+            font-weight: 400;
+            text-align: center;
+            vertical-align: middle;
+            user-select: none;
+            border: 1px solid transparent;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .btn-outline-danger {
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            background-color: transparent;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .header {
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-report {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .sub-title {
+            font-size: 1.2rem;
+            color: blue;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            color: #fff;
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        .header-top {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-around;
+            gap: 20rem;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 767px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 0.5rem;
+                align-items: start;
+            }
+            .header-top {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 0.5rem;
+                gap: 5rem;
+                width: 100%;
+            }
+
+            .progress-report {
+                font-size: 1.2rem;
+                margin-right: 0;
+            }
+
+            .logout-btn {
+                font-size: 0.9rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .sub-title {
+                font-size: 1rem;
+                text-align: center;
+            }
+
+            .container {
+                padding: 10px;
+                width: 100%;
+                margin-top: 120px; /* Adjust based on your header height */
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            .table {
+                font-size: 0.8rem;
+                width: 100%;
+            }
+
+            .table th, .table td {
+                padding: 0.4rem;
+                white-space: nowrap;
+            }
+
+            .btn {
+                font-size: 0.9rem;
+                padding: 0.3rem 0.6rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .toggle-btn {
+                font-size: 2rem;
+            }
+
+            .table th, .table td {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .form-row {
+                display: flex;
+                flex-direction: row;
+                gap: 7px;
+            }
+            .container {
+                width: 23rem;
+            }
+            .header{
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .header-top {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 0.5rem;
+                gap: 1rem;
+                width: 100%;
+            }
+
+            .first {
+                display: flex;
+                justify-content: space-evenly;
+                margin-right: 20px;
+            }
+
+            .sub-title {
+                font-size: 1rem;
+            }
+
+            .toggle-btn {
+            display: block;
+            background-color: transparent;
+            border: none;
+            color: #333;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-right: 1rem;
+            margin-left: -100px;
+        }
+
+            .logout-btn {
+                padding: 0.5rem 9.2rem;
+                font-size: 0.8rem;
+                margin-left: -5px;
+            }
+
+            .progress-report {
+                margin-left: 60px;
+            }
+            .user-greeting {
+                text-align: center;
+            }
+        }
+        .first {
+            display: flex;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <div class="first">
+                <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+                <div class="progress-report">Validate Data</div>
+            </div>
+ <div class="sub-title">
+        <img src="{% static 'images/login2.png' %}" alt="UDAAN Logo" style="height: 50px;">
+    </div>
+            <div>
+                {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger logout-btn">Logout</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <ul>
+            <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'statusrecord' %}">View Status</a></li>
+            <li><a href="{% url 'validate_data' %}">Validate Data</a></li>
+            <li><a href="{% url 'summarized_monthly_data' %}">Summarized Monthly Data</a></li>
+            <li><a href="/admin">Admin Panel</a></li>
+            <li><a href="{% url 'index' %}">Go to Your Records</a></li>
+            <li><a href="{% url 'user_data' %}">Any User Data Entry</a></li>
+            <li><a href="{% url 'simplified_data' %}">Simplified Data</a></li>
+        </ul>
+    </div>
+
+    <div class="container mt-5">
+        <h2>Validate Data</h2>
+
+        <form method="POST" class="mb-4" id="validateForm">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 col-sm-12 mb-3">
+                    <label for="start_date">Start Date:</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-6 col-sm-12 mb-3">
+                    <label for="end_date">End Date:</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4 col-sm-12 mb-3">
+                    <button type="submit" class="btn btn-primary">Fetch Data</button>
+                </div>
+                <div class="col-md-4 col-sm-12 mb-3">
+                    <input type="file" id="excelFile" accept=".xlsx, .xls" class="form-control">
+                </div>
+                <div class="col-md-4 col-sm-12 mb-3">
+                    <button type="button" id="updateDataBtn" class="btn btn-success">Update Data</button>
+                </div>
+            </div>
+        </form>
+
+        <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+
+        <div id="notification" class="row mt-2" style="display: none;"></div>
+
+        <h3>Validation Report</h3>
+        <div class="table-responsive">
+            <table class="table table-striped" id="dataTable">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Username</th>
+                        <th>Total (DB)</th>
+                        <th>Excel Total</th>
+                        <th>Working Days</th>
+                        <th>Average</th>
+                        <th>Difference (GC)</th>
+                        <th>Target</th>
+                        <th>Difference (Target)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in user_data %}
+                    <tr>
+                        <td>{{ user.user_id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.total }}</td>
+                        <td class="excel-total"></td>
+                        <td class="working-days"></td>
+                        <td class="average"></td>
+                        <td class="status"></td>
+                        <td class="target"></td>
+                        <td class="target-difference"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+   <script>
+        let excelData = null;
+        let existingDateRanges = [];
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
+            const form = document.getElementById('validateForm');
+            const errorMessage = document.getElementById('error-message');
+
+            // Set max date to today
+            const today = new Date().toISOString().split('T')[0];
+            startDateInput.max = today;
+            endDateInput.max = today;
+
+            function validateDates() {
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+                const currentDate = new Date();
+
+                if (startDate > currentDate || endDate > currentDate) {
+                    showError('You cannot select future dates.');
+                    return false;
+                }
+
+                if (startDate > endDate) {
+                    showError('Start date cannot be after end date.');
+                    return false;
+                }
+
+                // Check if the date range overlaps with existing ranges
+                for (const range of existingDateRanges) {
+                    const [rangeStart, rangeEnd] = range;
+                    if (
+                        (startDate >= rangeStart && startDate <= rangeEnd) ||
+                        (endDate >= rangeStart && endDate <= rangeEnd) ||
+                        (startDate <= rangeStart && endDate >= rangeEnd)
+                    ) {
+                        showError(`Sorry, you have already entered data from ${rangeStart.toISOString().split('T')[0]} to ${rangeEnd.toISOString().split('T')[0]}.`);
+                        return false;
+                    }
+                }
+
+                hideError();
+                return true;
+            }
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+
+            function hideError() {
+                errorMessage.style.display = 'none';
+            }
+
+            form.addEventListener('submit', function(event) {
+                if (!validateDates()) {
+                    event.preventDefault();
+                } else {
+                    // Add the new date range to the list of existing ranges
+                    existingDateRanges.push([
+                        new Date(startDateInput.value),
+                        new Date(endDateInput.value)
+                    ]);
+                }
+            });
+
+            startDateInput.addEventListener('change', validateDates);
+            endDateInput.addEventListener('change', validateDates);
+        });
+
+        document.getElementById('excelFile').addEventListener('change', handleFile, false);
+
+        function handleFile(e) {
+            var file = e.target.files[0];
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, {type: 'array'});
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+                excelData = XLSX.utils.sheet_to_json(worksheet);
+
+                processData(excelData);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processData(excelData) {
+    var table = document.getElementById('dataTable');
+    var rows = table.getElementsByTagName('tr');
+
+    var excelDataMap = {};
+    excelData.forEach(row => {
+        if (row['User ID']) {
+            excelDataMap[row['User ID'].toString()] = {
+                workingDays: row['Working Days'] === '' ? 0 : (parseInt(row['Working Days']) || 0),
+                excelTotal: row['Total'] === '' ? 0 : (parseInt(row['Total']) || 0),
+                target: row['Target'] === '' ? 0 : (parseInt(row['Target']) || 0)
+            };
+        }
+    });
+
+    for (var i = 1; i < rows.length; i++) {
+        var cells = rows[i].getElementsByTagName('td');
+        var userId = cells[0].innerText;
+        var dbTotal = parseInt(cells[2].innerText);
+
+        var excelRow = excelDataMap[userId];
+        if (excelRow) {
+            var workingDays = excelRow.workingDays;
+            var excelTotal = excelRow.excelTotal;
+            var target = excelRow.target;
+            cells[3].innerText = excelTotal;
+            cells[4].innerText = workingDays;
+
+            var average = workingDays > 0 ? (excelTotal / workingDays).toFixed(2) : '0.00';
+            cells[5].innerText = average;
+
+            var gcDifference = dbTotal - excelTotal;
+            cells[6].innerText = gcDifference;
+            cells[6].style.color = gcDifference === 0 ? 'green' : 'red';
+
+            cells[7].innerText = target;
+
+            var targetDifference = target - dbTotal;
+            cells[8].innerText = targetDifference;
+            if (targetDifference > 0) {
+                cells[8].style.color = 'red';
+            } else if (targetDifference < 0) {
+                cells[8].style.color = 'green';
+            } else {
+                cells[8].style.color = 'black';
+            }
+        } else {
+            cells[3].innerText = '0';
+            cells[4].innerText = '0';
+            cells[5].innerText = '0.00';
+            cells[6].innerText = 'User not found in Excel';
+            cells[6].style.color = 'orange';
+            cells[7].innerText = '0';
+            cells[8].innerText = 'N/A';
+        }
+    }
+}
+        document.getElementById('updateDataBtn').addEventListener('click', function() {
+            if (excelData) {
+                updateSimplifiedData(excelData);
+            }
+        });
+
+        function updateSimplifiedData(data) {
+            fetch('{% url "update_simplified_data" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    end_date: document.getElementById('end_date').value,
+                    excel_data: data
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Data updated successfully! Updated ' + data.updated_count + ' records.', 'success');
+                    // setTimeout(() => {
+                    //     window.location.href = '{% url "simplified_data" %}';
+                    // }, 2000);
+                } else {
+                    showNotification('Error updating data: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('An unexpected error occurred: ' + error, 'error');
+            });
+        }
+
+        function showNotification(message, type) {
+            const notificationDiv = document.getElementById('notification');
+            notificationDiv.innerHTML = `<div class="col-12"><div class="alert alert-${type === 'success' ? 'success' : 'danger'}">${message}</div></div>`;
+            notificationDiv.style.display = 'flex';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('.table-responsive');
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    table.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - table.offsetLeft;
+        scrollLeft = table.scrollLeft;
+    });
+
+    table.addEventListener('mouseleave', () => {
+        isDown = false;
+    });
+
+    table.addEventListener('mouseup', () => {
+        isDown = false;
+    });
+
+    table.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - table.offsetLeft;
+        const walk = (x - startX) * 2;
+        table.scrollLeft = scrollLeft - walk;
+    });
+
+    // Touch events for mobile
+    table.addEventListener('touchstart', (e) => {
+        isDown = true;
+        startX = e.touches[0].pageX - table.offsetLeft;
+        scrollLeft = table.scrollLeft;
+    });
+
+    table.addEventListener('touchend', () => {
+        isDown = false;
+    });
+
+    table.addEventListener('touchmove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.touches[0].pageX - table.offsetLeft;
+        const walk = (x - startX) * 2;
+        table.scrollLeft = scrollLeft - walk;
+    });
+});
+    </script>
+</body>
+</html>
+{% endblock %}
